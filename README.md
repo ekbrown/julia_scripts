@@ -1,5 +1,5 @@
 # julia_scripts
-Julia script, mostly for corpus linguistics methods.
+Julia scripts, mostly for corpus linguistics methods.
 
 ## freq_disp.jl
 

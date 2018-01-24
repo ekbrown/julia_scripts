@@ -64,12 +64,10 @@ function concord(input_dir, search_regex, context_size = 50)
 end  # function definition
 
 ### tests function
-# input_dir = "/Users/ekb5/Corpora/demo"
-input_dir = "/Users/ekb5/Corpora/USA/California/Salinas/transcripts"
-# input_dir = "/Users/ekb5/Corpora/Colombia/Cali/File-Muriel/Texts"
-search_regex = r"\w+[sz]\b"i
+input_dir = "/pathway/to/directory"
+search_regex = r"[REGEX HERE]"i  # case-insensitive search
 
 results = concord(input_dir, search_regex)
 
-writedlm("/Users/ekb5/Downloads/output.csv", results, '\n', quotes=false, comments=false)
+writedlm("/pathway/to/output.csv", results, '\n', quotes=false, comments=false)
 println("All done!")

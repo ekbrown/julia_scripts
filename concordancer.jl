@@ -1,5 +1,5 @@
 #=
-Julia function to create a .csv file with a concordance of matches of a regular expression in a directory of .txt files (other file types in the directory are ignored). The surrounding context includes up to the number of characters specified in the 'context_size' argument or all available context within the paragraph if the specified number excedes the number of characters available. The functions returns an array of strings, each string with tabs that separate the filename of the file in which a match was found, the paragraph number, the preceding context, the match, and the following context.
+Julia function to create a .csv file with a concordance of matches of a regular expression in a directory of .txt files (other file types in the directory are ignored). The surrounding context includes up to the number of characters specified in the 'context_size' argument or all available context within the paragraph if the specified number exceeds the number of characters available. The functions returns an array of strings, each string with tabs that separate the filename of the file in which a match was found, the paragraph number, the preceding context, the match, and the following context.
 
 (c) 2018 Earl K. Brown, ekbrown@byu.edu
 =#

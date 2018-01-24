@@ -9,3 +9,6 @@ For information about the DP dispersion algorithm, see:
 
 Gries, Stefan Th. 2008. Dispersions and adjusted frequencies in corpora. *International Journal of Corpus Linguistics* 13(4), 403–437.
 
+## concordancer.jl
+
+Julia script to create a .csv with concordance lines of matches of a regular expression from a directory of .txt files.

@@ -1,8 +1,16 @@
+# Julia (0.6.2) script to retrieve the collocates of a node word
+# in a directory of .txt files on the user hard drive.
+# Only .txt files are used; other files in the directory are ignored.
 
+# (c) 2018 Earl K. Brown, ekbrown@byu.edu
 
-
-
-
+# usage: find_collocates(
+# dir_with_txt: directory with the .txt files,
+# node_wd: the node word whose collocates are desired,
+# span: the width in words of the span around the node word (default is 4),
+# side: which side of the node word: "left", "right", "both" (default),
+# min_freq: the minimum frequency of the collocates to retrieve (default is 2)
+# )
 
 using DataFrames
 

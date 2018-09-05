@@ -9,6 +9,9 @@ Julia (v. 0.6) function to create a .csv file with a concordance of matches of a
 
 Julia (v. 0.6) function to retrieve the collocates of a node word within a directory of .txt file (other file types in the directory are ignored). The span width of the collocates can be configured with an integer supplied to the `span` argument. The `side` argument controls which side(s) of the node word collocates are retrieved from, with one of three strings: `left`, `right`, or `both`. With an integer, the `min_freq` argument controls the minimum frequency that collocates must have in order to be retrieved.
 
+## find_collocates_v1.0.jl
+Same as `find_collocates.jl` but written for Julia 1.0.
+
 ## freq_disp.jl
 
 Julia (v. 0.6) implementation of Stefan Th. Gries' DP (Deviation of Proportions) word dispersion algorithm. The functions takes as input a string with the pathway to the input directory with .txt files (only .txt files are read; other file types are ignored). The function returns a Julia DataFrame with three columns: word, raw frequency, DP. The DataFrame is ordered in descending order by raw frequency.

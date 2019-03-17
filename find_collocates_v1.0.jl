@@ -27,11 +27,11 @@ function find_collocates(dir_with_txt, node_wd, span = 4, side = "both", min_fre
        error("In the call to find_collocates(), you need to supply a positive integer to the argument 'span'.")
     end
 
-    if side == lowercase("both")
+    if lowercase(side) == "both"
         span_to_search = -span:span
-    elseif side == lowercase("left")
+    elseif lowercase(side) == "left"
         span_to_search = -span:-1
-    elseif side == lowercase("right")
+    elseif lowercase(side) == "right"
         span_to_search = 1:span
     else
         error("In the call to find_collocates(), you need to specify 'side' as either 'left', 'right', or 'both'.")

@@ -22,4 +22,4 @@ Gries, Stefan Th. 2008. Dispersions and adjusted frequencies in corpora. *Intern
 
 ## get_keywords.jl
 
-Julia (v. 1.0) script to retrieve keywords in a target corpus, based on a reference corpus. The user specifies the pathway to the target corpus directory and the pathway to the reference corpus directory, the number of keywords to retrieve, and the minimum frequency in the target corpus for words to be considered as a keyword.
+Julia (v. 1.0) script to retrieve keywords in a target corpus, based on a reference corpus. The user specifies the pathway to the target corpus directory and the pathway to the reference corpus directory, the number of keywords to retrieve, and the minimum frequency in the target corpus for words to be considered as a keyword. Only .txt files in the two directories are read in; other file types are ignored.

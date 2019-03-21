@@ -19,3 +19,7 @@ Julia (v. 0.6) implementation of Stefan Th. Gries' DP (Deviation of Proportions)
 For information about the DP dispersion algorithm, see:
 
 Gries, Stefan Th. 2008. Dispersions and adjusted frequencies in corpora. *International Journal of Corpus Linguistics* 13(4), 403–437.
+
+## get_keywords.jl
+
+Julia (v. 1.0) script to retrieve keywords in a target corpus, based on a reference corpus. The user specifies the pathway to the target corpus directory and the pathway to the reference corpus directory, the number of keywords to retrieve, and the minimum frequency in the target corpus for words to be considered as a keyword.

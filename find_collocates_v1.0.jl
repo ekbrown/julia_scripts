@@ -1,27 +1,27 @@
-# Julia (1.0) script to retrieve the collocates of a node word
-# in a directory of .txt files on the user hard drive.
-# Only .txt files are used; other files in the directory are ignored.
+#= Julia (v1.0+) function to retrieve the collocates of a node word
+Earl K. Brown, ekbrown byu edu (add appropriate characters to create email)
+=#
 
-# (c) 2018 Earl K. Brown, ekbrown@byu.edu
+using DataFrames, Languages
 
-# usage: find_collocates(
-# dir_with_txt: directory with the .txt files,
-# node_wd: the node word whose collocates are desired,
-# span: the width in words of the span around the node word (default is 4),
-# side: which side of the node word: "left", "right", "both" (default),
-# min_freq: the minimum frequency of the collocates to retrieve (default is 2)
-# )
+function find_collocates(dir_with_txt, node_wd, stop_words = [], span = 4, side = "both", min_freq = 2, sort_by = "freq")
+    #=
+    dir_with_txt: a string indicating the directory with the TXT files.
+    node_wd: a string with the node word whose collocates are desired.
+    stop_words: an array with words to exclude as possible collocates.
+    span: an integer with the width in words of the span around the node word (default is 4).
+    side: a string indicating which side, or both, of the node word to look for collocates,
+        from among "both", "left", "right" (default is "both").
+    min_freq: an integer giving the minimum frequency of the collocates (default is 2).
+    sort_by: a string indicating the metric to order the collocates, from among
+        "freq" (frequency), "t_score", "mi" (mutual information), "log_dice" (default is "freq").
+    =#
 
-
-using DataFrames
-
-function find_collocates(dir_with_txt, node_wd, span = 4, side = "both", min_freq = 2)
-
-    # verify arguments given by user
-
-    if !isa(node_wd, Regex)
-       error("In the call to find_collocates, you need to supply a regular expression (e.g. r'\bword\b'i) to the argument 'node_wd'.")
+    ### verify arguments given by user
+    if !isa(node_wd, String)
+       error("In the call to find_collocates, you need to supply a String to the argument 'node_wd'.")
     end
+    node_wd = uppercase(node_wd)
 
     if span <= 0 || !isa(span, Integer)
        error("In the call to find_collocates(), you need to supply a positive integer to the argument 'span'.")
@@ -37,80 +37,106 @@ function find_collocates(dir_with_txt, node_wd, span = 4, side = "both", min_fre
         error("In the call to find_collocates(), you need to specify 'side' as either 'left', 'right', or 'both'.")
     end
 
-    # end data verification
+    stop_words = uppercase.(stop_words)
+    ### end data verification
 
-    # creates collector dictionary
-    freqs_dict = Dict{String,Int64}()
+    # create collector dictionaries
+    freqs_collocates = Dict{String,Int64}()
+    freqs_wds = Dict{String, Int64}()
 
-    # gets .txt filenames
-    original_working_dir = pwd()
+    # get TXT filenames
     cd(dir_with_txt)
     filenames = filter(x -> occursin(r"\.txt$"i, x), readdir())
 
-    for i in filenames
-        open(i) do fin
-            for ln in eachline(fin)
+    # create collector for total words in all files
+    count_wds = 0
 
-                # checks whether the node word is in the current line
-                if occursin(node_wd, ln)
+    # loop over files
+    for f in filenames
 
-                    # split up current line into words
-                    wds = split(ln, r"[^-'a-z]"i, keepempty = false)
+        # open connection to current file
+        open(f) do fin
 
-                    # loop over the words in the current line
-                    for j in 1:length(wds)
+            # read whole file as string and make it uppercase
+            whole_file = uppercase(read(fin, String))
 
-                        # if the current word matches the node word
-                        if occursin(node_wd, wds[j])
+            # split up current file into words
+            wds = split(whole_file, r"[^-'a-z]"i, keepempty = false)
 
-                            # loop over the collocates within the span
-                            for k in span_to_search
+            # loop over words in current file
+            for j in 1:length(wds)
 
-                                # if the current span word is the node word
-                                if k == 0
-                                    continue
-                                end  # if current span word is the node word itself
+                # increment frequency counter for current word and total word counter
+                freqs_wds[wds[j]] = get(freqs_wds, wds[j], 0) + 1
+                count_wds += 1
 
-                                # try to get the next collocate word, if it doesn't fall outside the range of the words in the current line
-                                try
-                                    collocate_wd = uppercase(wds[j + k])
-                                    freqs_dict[collocate_wd] = get(freqs_dict, collocate_wd, 0) + 1
-                                catch BoundsError
-                                    continue
-                                end  # try catch block
-                            end  # next collocate word
-                        end  # if current word is node word
-                    end  # next word in current line
-                end  # if match is found in current line
-            end
+                # checks whether the current word is the node word
+                if node_wd == wds[j]
+
+                    # loop over the collocates within the span
+                    for k in span_to_search
+
+                        # if the current span word is the node word itself
+                        if k == 0
+                            continue
+                        end
+
+                        # try to get the next collocate word, if it doesn't fall outside the range of the words in the current file
+                        try
+                            collocate_wd = wds[j + k]
+
+                            # if the collocate word is not a stopword, add to collocate collector
+                            if !in(collocate_wd, stop_words)
+                                freqs_collocates[collocate_wd] = get(freqs_collocates, collocate_wd, 0) + 1
+                            end
+                        catch BoundsError
+                            continue
+                        end  # try catch block
+                    end  # next collocate word
+                end  # if match is found in current file
+            end  # next index over words
+        end  # close connection to current file
+    end  # next file in directory
+
+    # push dictionary to data frame
+    freqs_df = DataFrame(collocate = String[], freq = Int64[], t_score = Float64[], mi = Float64[], log_dice = Float64[])
+    for (k, v) in freqs_collocates
+
+        # add collocate word is above minimum frequency specified by the user
+        if v >= min_freq
+
+            # calculate word association metrics and push to collector DataFrame
+            t_score = (v - ((freqs_wds[node_wd] * freqs_wds[k]) / count_wds)) / sqrt(v)
+            mi = log2((v * count_wds) / (freqs_wds[node_wd] * freqs_wds[k]))
+            log_dice = 14 + log2((2 * v) / (freqs_wds[node_wd] + freqs_wds[k]))
+            push!(freqs_df, [k, v, t_score, mi, log_dice])
         end
     end
 
-    # push dictionary to data frame
-    freqs_df = DataFrame(collocate = String[], freq = Int64[])
-    for (k, v) in freqs_dict
-        push!(freqs_df, [k, v])
+    # sort in descending order by association metric, then in ascending order by collocate
+    if sort_by == "freq"
+        sort!(freqs_df, [order(:freq, rev = true), order(:collocate)])
+    elseif sort_by == "t_score"
+        sort!(freqs_df, [order(:t_score, rev = true), order(:collocate)])
+    elseif sort_by == "mi"
+        sort!(freqs_df, [order(:mi, rev = true), order(:collocate)])
+    elseif sort_by == "log_dice"
+        sort!(freqs_df, [order(:log_dice, rev = true), order(:collocate)])
     end
-
-    # limit results to minimum frequency
-    freqs_df = freqs_df[freqs_df[:, :freq] .>= min_freq, :]
-
-    # sort in descending order by frequency, then in ascending order by collocate
-    sort!(freqs_df, [order(:freq, rev = true), order(:collocate)])
-
-    # change to original working directory
-    cd(original_working_dir)
 
     return freqs_df
 
 end  # end function definition
 
 ### test the function
-dir_with_txt = "/pathway/to/directory"
-node_wd = r"\bword\b"i  # as regex, with any flags that the user wants
+dir_with_txt = "/Users/ekb5/Corpora/gen_conf_trunc"
+node_wd = "prophet"  # as a string
+stop_words = stopwords(Languages.English())
+stop_words = []
 span = 4
 side = "both"
-min_freq = 3
+min_freq = 10
+sort_by = "log_dice"
 
-@time results = find_collocates(dir_with_txt, node_wd, span, side, min_freq)
-println(results)
+@time results = find_collocates(dir_with_txt, node_wd, stop_words, span, side, min_freq, sort_by)
+println(results[1:10,:])

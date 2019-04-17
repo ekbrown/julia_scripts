@@ -131,11 +131,11 @@ end  # end function definition
 ### test the function
 dir_with_txt = "/Users/ekb5/Corpora/gen_conf_trunc"
 node_wd = "prophet"  # as a string
-stop_words = stopwords(Languages.English())
+# stop_words = stopwords(Languages.English())
 stop_words = []
 span = 4
 side = "both"
-min_freq = 10
+min_freq = 1
 sort_by = "log_dice"
 
 @time results = find_collocates(dir_with_txt, node_wd, stop_words, span, side, min_freq, sort_by)

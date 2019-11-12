@@ -1,5 +1,4 @@
-#=
-Julia (v1) function to retrieve frequencies and Stefan Th. Gries' DP (Deviation of Proportions) word dispersion algorithm for words in a directory of TXT files.
+#= Julia (v1) function to retrieve frequencies as well as Stefan Th. Gries' DP (Deviation of Proportions) word dispersion algorithm for words in a directory of TXT files.
 Earl K. Brown, ekbrown byu edu (add appropriate characters to create email)
 =#
 
@@ -24,7 +23,7 @@ function get_dispersion(input_dir, min_freq = 1, sort_by = "dp")
     filenames = filter(f -> occursin(r"\.txt$"i, f), readdir())
 
     # creates empty array to collect number of words in each file
-    s = []
+    s = Array{Int64, 1}()
 
     # creates dictionary to collect frequency of words in each file
     freq_by_file = Dict{Tuple, Int64}()
@@ -87,14 +86,14 @@ function get_dispersion(input_dir, min_freq = 1, sort_by = "dp")
     end
 
     # creates a data frame collector to format output
-    output = DataFrame(wd = String[], freq = Int64[], freq_log = Float64[], range = Int64[], dp = Float64[], dp_norm = Float64[])
+    output = DataFrame(wd = String[], freq = Int64[], freq_log10 = Float64[], range = Int64[], dp = Float64[], dp_norm = Float64[])
     for (k, v) in all_freq
         # println(k)
         push!(output, [k, v, log10(v), dp[k][1], dp[k][2], dp[k][3]])
     end
 
-    # filter by minimum frequency desired by user of function
-    output = output[(output[:freq].>= min_freq),:]
+    # filter by minimum frequency desired by user
+    output = output[(output[!, :freq].>= min_freq),:]
 
     # sorts data frame in descending order of freq, and then ascending of word
     if sort_by == "freq"
@@ -109,9 +108,12 @@ function get_dispersion(input_dir, min_freq = 1, sort_by = "dp")
 
 end  # end function definition
 
-### test the function
+#########################
+### test the function ###
+#########################
+
 input_dir = "/Users/ekb5/Corpora/USA/California/Salinas/transcripts"
 min_freq = 1
 sort_by = "freq"
 @time results = get_dispersion(input_dir, min_freq, sort_by)  # runs function
-println(results[1:20,:])
+println(results[1:10,:])

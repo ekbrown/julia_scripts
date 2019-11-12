@@ -22,16 +22,16 @@ function get_dispersion(input_dir, min_freq = 1, sort_by = "dp")
     cd(input_dir)
     filenames = filter(f -> occursin(r"\.txt$"i, f), readdir())
 
-    # creates empty array to collect number of words in each file
+    # create empty array to collect number of words in each file
     s = Array{Int64, 1}()
 
-    # creates dictionary to collect frequency of words in each file
+    # create dictionary to collect frequency of words in each file
     freq_by_file = Dict{Tuple, Int64}()
 
     # counter for number of files
     counter = 0
 
-    # loops over files in directory
+    # loop over files in directory
     for f in filenames
 
         # increment file counter
@@ -43,37 +43,36 @@ function get_dispersion(input_dir, min_freq = 1, sort_by = "dp")
             # read whole file as string and make it uppercase
             whole_file = uppercase(read(infile, String))
 
-            # get words in currentn file
+            # get words in current file
             wds = split(whole_file, r"[^-'a-záéíóúüñ0-9]+"i, keepempty = false)
 
-            # pushes number of words in current file to collector
+            # push number of words in current file to collector
             push!(s, length(wds))
 
-            # loops over words in current file, pushing them to dictionary
+            # loop over words in current file, pushing them to dictionary
             for wd in wds
                 freq_by_file[(wd, counter)] = get(freq_by_file, (wd, counter), 0) + 1
             end  # next word
         end  # close connection to current file
     end  # next filename
 
-    # gets number of files in directory and total number of words in directory
+    # get number of files in directory and total number of words in directory
     num_files = length(s)
     total_num_wds = sum(s)
 
-    # converts number of words in each file to percentages
+    # convert number of words in each file to percentage
     s = s / total_num_wds
 
-    # creates dictionary of all freqs
+    # create dictionary of all freqs
     all_freq = Dict{String, Int64}()
     for (k, v) in freq_by_file
-        # println(k, v)
         all_freq[k[1]] = get(all_freq, k[1], 0) + v
     end
 
-    # creates empty dictionary to collect range, DP, and DP normalized of words
+    # create empty dictionary to collect range, DP, and DP normalized of words
     dp = Dict{String, Tuple}()
 
-    # loops over words and pushes DP of each to collector
+    # loop over words and pushes DP of each to collector
     for i in keys(all_freq)
         observed = []
         for j in 1:num_files
@@ -85,17 +84,16 @@ function get_dispersion(input_dir, min_freq = 1, sort_by = "dp")
         dp[i] = (cur_range, cur_dp, cur_dp_norm)
     end
 
-    # creates a data frame collector to format output
+    # create a data frame collector to format output
     output = DataFrame(wd = String[], freq = Int64[], freq_log10 = Float64[], range = Int64[], dp = Float64[], dp_norm = Float64[])
     for (k, v) in all_freq
-        # println(k)
         push!(output, [k, v, log10(v), dp[k][1], dp[k][2], dp[k][3]])
     end
 
     # filter by minimum frequency desired by user
     output = output[(output[!, :freq].>= min_freq),:]
 
-    # sorts data frame in descending order of freq, and then ascending of word
+    # sort data frame
     if sort_by == "freq"
         sort!(output, [order(:freq, rev = true), :wd])
     elseif sort_by == "range"

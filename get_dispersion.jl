@@ -28,6 +28,9 @@ function get_dispersion(input_dir, min_freq = 1, sort_by = "dp")
     # create dictionary to collect frequency of words in each file
     freq_by_file = Dict{Tuple, Int64}()
 
+    all_freq = Dict{String, Int64}()
+
+
     # counter for number of files
     counter = 0
 
@@ -52,43 +55,64 @@ function get_dispersion(input_dir, min_freq = 1, sort_by = "dp")
             # loop over words in current file, pushing them to dictionary
             for wd in wds
                 freq_by_file[(wd, counter)] = get(freq_by_file, (wd, counter), 0) + 1
+
+                # for (k, v) in freq_by_file
+                all_freq[wd] = get(all_freq, wd, 0) + 1
+                # end
+
+
             end  # next word
         end  # close connection to current file
     end  # next filename
 
     # get number of files in directory and total number of words in directory
     num_files = length(s)
-    total_num_wds = sum(s)
+    # total_num_wds = sum(s)
 
-    # convert number of words in each file to percentage
-    s = s / total_num_wds
+    # convert number of words in each file to ratios
+    # s = s / total_num_wds
+    s /= sum(s)
 
     # create dictionary of all freqs
-    all_freq = Dict{String, Int64}()
-    for (k, v) in freq_by_file
-        all_freq[k[1]] = get(all_freq, k[1], 0) + v
-    end
+    # all_freq = Dict{String, Int64}()
+    # for (k, v) in freq_by_file
+    #     all_freq[k[1]] = get(all_freq, k[1], 0) + v
+    # end
 
     # create empty dictionary to collect range, DP, and DP normalized of words
     dp = Dict{String, Tuple}()
 
-    # loop over words and pushes DP of each to collector
-    for i in keys(all_freq)
+    output = DataFrame(wd = String[], freq = Int64[], freq_log10 = Float64[], range = Int64[], dp = Float64[], dp_norm = Float64[])
+
+
+    # loop over words and pushes DP of each word to collector
+    # for i in keys(all_freq)
+    for (k, v) in all_freq
         observed = []
         for j in 1:num_files
-            push!(observed, get(freq_by_file, (i, j), 0))
+            push!(observed, get(freq_by_file, (k, j), 0))
         end
+        # println(observed)
+        # println(i)
+        # error("asdf")
         cur_range = length(filter(x -> x > 0, observed))
-        cur_dp = sum(abs.((observed / all_freq[i]) - s)) / 2
+        cur_dp = sum(abs.((observed / all_freq[k]) - s)) / 2
+        # cur_dp = sum(abs.(observed / all_freq[i])) / 2
         cur_dp_norm = cur_dp / (1 - minimum(s))
-        dp[i] = (cur_range, cur_dp, cur_dp_norm)
+        # dp[i] = (cur_range, cur_dp, cur_dp_norm)
+
+        # for (k, v) in all_freq
+        push!(output, [k, v, log10(v), cur_range, cur_dp, cur_dp_norm])
+        # end
+
+
     end
 
     # create a data frame collector to format output
-    output = DataFrame(wd = String[], freq = Int64[], freq_log10 = Float64[], range = Int64[], dp = Float64[], dp_norm = Float64[])
-    for (k, v) in all_freq
-        push!(output, [k, v, log10(v), dp[k][1], dp[k][2], dp[k][3]])
-    end
+    # output = DataFrame(wd = String[], freq = Int64[], freq_log10 = Float64[], range = Int64[], dp = Float64[], dp_norm = Float64[])
+    # for (k, v) in all_freq
+    #     push!(output, [k, v, log10(v), dp[k][1], dp[k][2], dp[k][3]])
+    # end
 
     # filter by minimum frequency desired by user
     output = output[(output[!, :freq].>= min_freq),:]
@@ -111,7 +135,8 @@ end  # end function definition
 #########################
 
 input_dir = "/Users/ekb5/Corpora/USA/California/Salinas/transcripts"
+input_dir = "/Users/ekb5/Downloads/delete"
 min_freq = 1
 sort_by = "freq"
 @time results = get_dispersion(input_dir, min_freq, sort_by)  # runs function
-println(results[1:10,:])
+# println(results[1:10,:])
